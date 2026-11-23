@@ -9,6 +9,7 @@ prefs.txt
 **/convert.py
 
 # Test results and CLI tools
+test/host/.build/
 test_results/
 wokwi-cli
 wokwi-cli.exe
