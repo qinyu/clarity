@@ -77,3 +77,7 @@ PLATFORMIO_BUILD_DIR="$out/build" PLATFORMIO_LIBDEPS_DIR="$out/libdeps" \
 - 查符号、调用关系或改动影响时，优先用本项目 MCP `clarity-codegraph`，再按需核对源码。MCP 不可用时，从仓库根用 `DO_NOT_TRACK=1 codegraph query <符号>`。
 - 索引缺失时运行项目 Setup 扩展。手动刷新已有索引用 `DO_NOT_TRACK=1 codegraph sync`。索引位于被 Git 忽略的 `.codegraph/`。
 - 项目 MCP 配置更新后，重开 Cursor 会话并检查工具是否可调用。
+
+## 决策说明
+
+对影响后续工作的策略、目录组织或验证入口等决定，紧跟一两句理由，交代它解决的问题、带来的收益或适用条件。预计的收益和实测结果分别表述。
