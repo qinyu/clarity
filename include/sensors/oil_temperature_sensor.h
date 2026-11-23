@@ -10,6 +10,7 @@
 #include "interfaces/i_configuration_manager.h"
 #include "interfaces/i_config.h"
 #include "sensors/base_sensor.h"
+#include "sensors/oil_temperature_sample_state.h"
 #include "definitions/types.h"
 #include "definitions/constants.h"
 #include "definitions/configs.h"
@@ -104,8 +105,7 @@ class OilTemperatureSensor : public BaseSensor, public IConfig
     float calibrationScale_ = 1.0f;
     std::string targetUnit_ = "C";
     int32_t currentReading_ = 0;
-    int32_t previousReading_ = 0;  // For GetReading() change tracking
-    int32_t previousChangeReading_ = 0;  // For HasStateChanged() separate tracking
+    OilTemperatureSampleState sampleState_;
     unsigned long lastUpdateTime_ = 0;
     unsigned long updateIntervalMs_;
 };

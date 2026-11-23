@@ -1,0 +1,13 @@
+name: Oil temperature A1 valid 80
+version: 1
+steps:
+  - wait-serial: "oil-temp acceptance rx=17 tx=1 display-input=on raw-probe=on"
+  - wait-serial: "OemOilPanel loaded successfully"
+  - delay: 1200ms
+  - write-serial: [83, 44, 65, 49, 10]
+  - write-serial: [84, 44, 56, 48, 10]
+  - wait-serial: "scenario=A1 input-seq=2 unavailable=0 value=80"
+  - delay: 1000ms
+  - take-screenshot:
+      part-id: lcd1
+      save-to: oil-temp-a1-80.png

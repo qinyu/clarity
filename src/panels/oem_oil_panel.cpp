@@ -1,7 +1,9 @@
 #include "panels/oem_oil_panel.h"
 #include "components/oem/oem_oil_pressure_component.h"
 #include "components/oem/oem_oil_temperature_component.h"
+#include "panels/oil_temperature_refresh.h"
 #include "sensors/oil_pressure_sensor.h"
+#include "sensors/oil_temperature_acceptance.h"
 #include "sensors/oil_temperature_sensor.h"
 #include "definitions/constants.h"
 #include "managers/error_manager.h"
@@ -395,14 +397,27 @@ void OemOilPanel::UpdateOilPressure(bool forceRefresh)
 /**
  * @brief Update the oil temperature reading on the screen
  */
+void OemOilPanel::CancelTemperatureAnimation()
+{
+    lv_anim_delete(this, OemOilPanel::ExecuteTemperatureAnimationCallback);
+    if (animationState_ == AnimationState::TEMPERATURE_RUNNING)
+    {
+        animationState_ = AnimationState::IDLE;
+    }
+    else if (animationState_ == AnimationState::BOTH_RUNNING)
+    {
+        animationState_ = AnimationState::PRESSURE_RUNNING;
+    }
+}
+
 void OemOilPanel::UpdateOilTemperature(bool forceRefresh)
 {
+    bool temperatureAnimationRunning = false;
 
-    // Skip update if temperature animation is already running
+    // Skip a normal refresh while the temperature animation is running, but still read the sensor
+    // so an invalid sample or a recovery can settle this animation without touching pressure.
     if (animationState_ == AnimationState::TEMPERATURE_RUNNING || animationState_ == AnimationState::BOTH_RUNNING)
     {
-        // Validate that the LVGL animation is actually still running
-        // If not, this is a stale flag that needs to be cleared
         if (!lv_anim_get(&temperatureAnimation_, nullptr))
         {
             log_w("UpdateOilTemperature: Found stale animation flag, clearing it");
@@ -414,7 +429,7 @@ void OemOilPanel::UpdateOilTemperature(bool forceRefresh)
         }
         else
         {
-            return;
+            temperatureAnimationRunning = true;
         }
     }
 
@@ -427,9 +442,59 @@ void OemOilPanel::UpdateOilTemperature(bool forceRefresh)
         return;
     }
 
-    // Use delta-based updates for better performance
-    auto sensorValue = std::get<int32_t>(oemOilTemperatureSensor_->GetReading());
-    auto value = MapTemperatureValue(sensorValue);
+    Reading reading = oemOilTemperatureSensor_->GetReading();
+    if (OilTempRawPairActive())
+    {
+        reading = oemOilTemperatureSensor_->GetReading();
+    }
+    const bool readingValid = std::holds_alternative<int32_t>(reading);
+    const int32_t sensorValue = readingValid ? std::get<int32_t>(reading) : 0;
+    const int32_t mappedValue = readingValid ? MapTemperatureValue(sensorValue) : currentOilTemperatureValue_;
+    OilTemperatureRefreshRequest refreshRequest;
+    refreshRequest.reading_valid = readingValid;
+    refreshRequest.mapped_value = mappedValue;
+    refreshRequest.last_shown = lastAnimatedTemperatureValue_;
+    refreshRequest.deadband = temperatureDeadband_;
+    refreshRequest.was_unavailable = oilTemperatureUnavailable_;
+    const OilTemperatureRefreshDecision decision = DecideOilTemperatureRefresh(refreshRequest);
+    const OilTempPanelTrace trace = OilTempPanelTraceNow();
+    if (trace.enabled && decision.show_unavailable)
+    {
+        static unsigned invalidUpdate = 0;
+        ++invalidUpdate;
+        log_t("oil-temp panel invalid-update=%04u scenario=%s input-seq=%u unavailable=1",
+              invalidUpdate, trace.scenario, trace.input_seq);
+    }
+    if (trace.enabled)
+    {
+        log_t("oil-temp panel scenario=%s input-seq=%u unavailable=%d value=%ld position=%d style=%d",
+              trace.scenario, trace.input_seq, decision.show_unavailable ? 1 : 0, static_cast<long>(decision.display_value),
+              decision.set_position ? 1 : 0, decision.refresh_style ? 1 : 0);
+    }
+    if (decision.show_unavailable)
+    {
+        CancelTemperatureAnimation();
+        oemOilTemperatureComponent_.SetAvailable(false);
+        oilTemperatureUnavailable_ = true;
+        return;
+    }
+    if (decision.set_position && decision.refresh_style)
+    {
+        CancelTemperatureAnimation();
+        oemOilTemperatureComponent_.SetValue(decision.display_value);
+        oemOilTemperatureComponent_.Refresh(Reading{decision.display_value});
+        oemOilTemperatureComponent_.SetAvailable(true);
+        lastAnimatedTemperatureValue_ = decision.display_value;
+        currentOilTemperatureValue_ = decision.display_value;
+        oilTemperatureUnavailable_ = false;
+        return;
+    }
+    if (temperatureAnimationRunning)
+    {
+        return;
+    }
+
+    const int32_t value = mappedValue;
 
     // Apply hysteresis/deadband to prevent jittery updates from sensor noise
     // Only animate if change exceeds deadband threshold or this is the first reading
