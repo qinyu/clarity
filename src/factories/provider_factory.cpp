@@ -1,5 +1,6 @@
 #include "factories/provider_factory.h"
 #include "providers/gpio_provider.h"
+#include "sensors/oil_temperature_acceptance.h"
 #include "providers/lvgl_display_provider.h"
 #include "providers/storage_provider.h"
 #include "providers/device_provider.h"
@@ -28,7 +29,11 @@ std::unique_ptr<IGpioProvider> ProviderFactory::CreateGpioProvider()
                                                      "GpioProvider allocation failed - out of memory");
         return nullptr;
     }
+#if defined(WOKWI_EMULATOR) && defined(OIL_TEMP_ACCEPTANCE)
+    return OilTempWrapGpio(std::move(provider));
+#else
     return provider;
+#endif
 }
 
 /**

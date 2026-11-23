@@ -1,0 +1,15 @@
+name: Oil temperature A2 second invalid update
+version: 1
+steps:
+  - wait-serial: "oil-temp acceptance rx=17 tx=1 display-input=on raw-probe=on"
+  - wait-serial: "OemOilPanel loaded successfully"
+  - delay: 1200ms
+  - write-serial: [83, 44, 65, 50, 10]
+  - write-serial: [84, 44, 56, 48, 10]
+  - wait-serial: "scenario=A2 input-seq=2 unavailable=0 value=80"
+  - write-serial: [73, 78, 86, 10]
+  - wait-serial: "invalid-update=0002 scenario=A2 input-seq=3 unavailable=1"
+  - delay: 300ms
+  - take-screenshot:
+      part-id: lcd1
+      save-to: oil-temp-a2-invalid-2.png

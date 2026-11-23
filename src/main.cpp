@@ -1,4 +1,5 @@
 #include "main.h"
+#include "sensors/oil_temperature_acceptance.h"
 #include "factories/provider_factory.h"
 #include "factories/manager_factory.h"
 #include "managers/error_manager.h"
@@ -200,6 +201,7 @@ bool initializeServices()
  */
 void setup()
 {
+    OilTempAcceptanceBegin();
     log_i("Starting Clarity application...");
 
     if (!initializeServices())
@@ -247,6 +249,7 @@ void setup()
  */
 void loop()
 {
+    OilTempAcceptancePoll();
     // Always process - ActionHandler runs always, TriggerHandler only on IDLE
     interruptManager->Process();
 

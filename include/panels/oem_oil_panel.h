@@ -80,6 +80,7 @@ class OemOilPanel : public IPanel
     // ========== Private Methods ==========
     void UpdateOilPressure(bool forceRefresh = false);
     void UpdateOilTemperature(bool forceRefresh = false);
+    void CancelTemperatureAnimation();
 
     // Value mapping methods
     int32_t MapPressureValue(int32_t sensorValue);
@@ -136,6 +137,7 @@ class OemOilPanel : public IPanel
     // Track last animated values for hysteresis
     int32_t lastAnimatedPressureValue_;
     int32_t lastAnimatedTemperatureValue_;
+    bool oilTemperatureUnavailable_ = false;
 
 private:
     // Helper methods for deadband calculation

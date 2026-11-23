@@ -1,0 +1,17 @@
+name: Oil temperature A4 recover 90
+version: 1
+steps:
+  - wait-serial: "oil-temp acceptance rx=17 tx=1 display-input=on raw-probe=on"
+  - wait-serial: "OemOilPanel loaded successfully"
+  - delay: 1200ms
+  - write-serial: [83, 44, 65, 52, 10]
+  - write-serial: [84, 44, 56, 48, 10]
+  - wait-serial: "scenario=A4 input-seq=2 unavailable=0 value=80"
+  - write-serial: [73, 78, 86, 10]
+  - wait-serial: "invalid-update=0001 scenario=A4"
+  - write-serial: [84, 44, 57, 48, 10]
+  - wait-serial: "scenario=A4 input-seq=4 unavailable=0 value=90 position=1 style=1"
+  - delay: 300ms
+  - take-screenshot:
+      part-id: lcd1
+      save-to: oil-temp-a4-90.png
