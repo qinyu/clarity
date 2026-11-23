@@ -1,4 +1,5 @@
 #include "panels/config_panel.h"
+#include "panels/theme_menu_focus.h"
 #include "managers/error_manager.h"
 #include "managers/style_manager.h"
 #include "definitions/types.h"
@@ -580,14 +581,19 @@ void ConfigPanel::ShowOptionsMenu(const std::string& fullKey, const Config::Conf
     // Add back option
     menuItems_.push_back({UIStrings::MenuLabels::BACK, UIStrings::ActionTypes::BACK, ""});
 
+    const bool focusSavedTheme = keyStr == UIStrings::ConfigKeys::STYLE_MANAGER_THEME && !options.empty();
+    const std::string savedValue = focusSavedTheme ? configurationManager_->ToString(item.value) : std::string{};
+    const size_t initialIndex = InitialOptionsFocusIndex(
+        focusSavedTheme, options, savedValue);
+
     // Update component
     if (componentInitialized_) {
         configComponent_.SetTitle(item.displayName);
         configComponent_.SetMenuItems(menuItems_);
-        configComponent_.SetCurrentIndex(0);
+        configComponent_.SetCurrentIndex(initialIndex);
     }
 
-    currentMenuIndex_ = 0;
+    currentMenuIndex_ = initialIndex;
 }
 
 /**

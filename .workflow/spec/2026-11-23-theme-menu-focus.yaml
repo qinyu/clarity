@@ -1,0 +1,21 @@
+name: theme-menu-focus
+stage: Develop
+refs:
+  define:
+    product_spec:
+      path: docs/specs/theme-menu-focus.md
+      sha256: 7c8266c63309bd01425e153c11361d0d309c9640a5d5e0d6081312da0af224a6
+    approval:
+      path: docs/specs/theme-menu-focus-define-approval.md
+      sha256: 752de5137c599126466da921c380a46607e780a3512d83a1536bb11f9a5f1679
+  design:
+    solution:
+      path: docs/specs/theme-menu-focus-design.md
+      sha256: cd1e0b97fdc743a49ff2879ccc511e004b9a66be6ca4dfddc33a8615ba94d318
+    tasks:
+      path: docs/specs/theme-menu-focus-tasks.md
+      sha256: 59f92e0278cd9a920287454e397b663205a068f434d620cf593fc165b4fc110e
+    approval:
+      path: docs/specs/theme-menu-focus-design-approval.md
+      sha256: ff434ac8b00a7694750fad8349a8cc07a936eeb143931c04ca60c7139826522b
+      status: approved

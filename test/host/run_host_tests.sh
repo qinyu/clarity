@@ -41,6 +41,7 @@ run_one_suite()
 
     echo "== compile: ${suite_name} (${#sources[@]} source(s))"
     if ! "${cxx}" -std=c++"${STD_CXX}" -Wall -Wextra -pedantic \
+        -I"${PROJECT_ROOT}/include" \
         "${sources[@]}" -o "${out}" 2>&1; then
         echo "host tests: COMPILE FAILED (${suite_name})" >&2
         return 1
