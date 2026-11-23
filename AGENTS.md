@@ -71,3 +71,9 @@ PLATFORMIO_BUILD_DIR="$out/build" PLATFORMIO_LIBDEPS_DIR="$out/libdeps" \
 
 - 理解架构、模块边界或专题实现时，优先读 `docs/wiki/index.md` 与 `docs/context.md`；维护知识库时使用 `wiki` 技能。
 - 已落地改动影响模块接口或术语时，按证据增量更新 `docs/wiki/`（不把未实现计划写成现状）。
+
+## CodeGraph（符号与调用关系）
+
+- 查符号、调用关系或改动影响时，优先用本项目 MCP `clarity-codegraph`，再按需核对源码。MCP 不可用时，从仓库根用 `DO_NOT_TRACK=1 codegraph query <符号>`。
+- 索引缺失时运行项目 Setup 扩展。手动刷新已有索引用 `DO_NOT_TRACK=1 codegraph sync`。索引位于被 Git 忽略的 `.codegraph/`。
+- 项目 MCP 配置更新后，重开 Cursor 会话并检查工具是否可调用。

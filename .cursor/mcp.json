@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "clarity-codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp",
+        "--path",
+        "${workspaceFolder}"
+      ],
+      "env": {
+        "DO_NOT_TRACK": "1"
+      }
+    }
+  }
+}
