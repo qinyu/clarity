@@ -1,1 +1,1 @@
-common fixture line
+source-side fixture line
