@@ -1,0 +1,73 @@
+name: theme-menu-focus
+stage: Develop
+refs:
+  source:
+    type: 本轮用户原话
+    quote: 打开主题菜单时，我想直接选中上次保存的主题，车灯临时变色照旧。
+  define:
+    baseline: e3ea788eefe9b18e992658b249819c3ad992f93f
+    decisions:
+      quote: Q1、Q2 按建议。
+      q1: 打开和浏览只移动焦点，长按才确认主题。
+      q2: 旧值无法匹配时高亮 Day，两个主题均无当前配置标记，显式保存前保留原值。
+    product_spec:
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus.md
+      sha256: b0baf9b2dd9204621e1ae55916a9aae5b9d2f861b295388c31b471cd2259e4d6
+    independent_review:
+      status: passed
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus.md
+      sha256: b0baf9b2dd9204621e1ae55916a9aae5b9d2f861b295388c31b471cd2259e4d6
+      result: 独立只读复审通过。双向保存、菜单即时刷新及仪表配色边界、开关灯后的焦点与无副作用、无匹配旧值的保留及显式保存均有验收依据。
+    pre_confirmation_extensions:
+      status: none_applicable
+      path: .workflow/resolved.yaml
+      sha256: a8909d46c855a6097b1cc44b747ac105c5225387d4e04eb4f5a504a00f95c220
+    approval:
+      status: approved
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-define-approval.md
+      sha256: 019d2febe444d984bcfc5a62d5fe52a9212fab747192e4ae38d06c3ac213f0cb
+  design:
+    solution:
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-design.md
+      sha256: e56c575b0994d65c6730468d676ad36337bf0611effd175ad42e7d4ecfbe5dd7
+    tasks:
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-tasks.md
+      sha256: f1f9c03b406d4925c30e79a2b9d8b9a7505b6dcf6e26f3cadfc5eda639a5e07e
+    independent_reviews:
+      solution:
+        status: passed
+        path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-design.md
+        sha256: e56c575b0994d65c6730468d676ad36337bf0611effd175ad42e7d4ecfbe5dd7
+        result: 私有接缝、索引一致性、兼容回滚及 A4–A8 的验收边界复审通过。
+      tasks:
+        status: passed
+        path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-tasks.md
+        sha256: f1f9c03b406d4925c30e79a2b9d8b9a7505b6dcf6e26f3cadfc5eda639a5e07e
+        result: A1–A8 的真实入口、时序断言、依赖与全量执行参数复审通过。
+    approval:
+      status: approved
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-design-approval.md
+      sha256: b00a29458e434a824a6ee73c75ee1fb02be4c441c260035ec075356ebc047b1c
+  develop:
+    branch: codex/theme-menu-focus-pr
+    baseline: e3ea788eefe9b18e992658b249819c3ad992f93f
+    execution:
+      path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-execution.md
+      sha256: 334aafa680412fe266dd1898f049c9ce75323eeea18b6ce3c7e111b4fa6208d6
+    tasks:
+      T1: 已通过并本地提交
+      T2: A1、A2、A3、A7 通过并本地提交
+      T3: A5、A6 通过并本地提交
+      T4: 同实例复位未成功，等待已请求的模拟复位决策
+      T5: A8 通过并本地提交
+    t1_commit: 8632b074fa6bcdafac715f529965040d9310361e
+    t1_capture:
+      path: .pio/theme-menu-focus-t1.53hpkacc/wokwi-web/probe-wd88g8dz/capture.json
+      sha256: f4f6d01bbe964054597f8005aecd7eb5156a9a2a09668b4a2def3feec13b462f
+    lint_commit: 890daa7cd6a128fa7da4de0ceb9fef33a6481aa1
+    release_gate_commit: 84006ad5095389f41ad94ff57cefd67d2d51db5e
+    t2_commit: ae46078a70583a40cdbca3a8817cd3d24f4ebf2a
+    delivery_branch: codex/theme-menu-focus-pr
+    delivery_target: main
+    t3_commit: 3336c93
+    t5_commit: ed76e0b
