@@ -134,6 +134,14 @@ void ActionHandler::ExecutePendingActions() {
     log_i("ExecutePendingActions: Executing %s press",
           pendingActionType_ == ButtonAction::SHORT_PRESS ? UIStrings::ButtonActionStrings::SHORT : UIStrings::ButtonActionStrings::LONG);
 
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    static unsigned long action_sequence = 0;
+    const unsigned long action_id = ++action_sequence;
+    const char* action_name = pendingActionType_ == ButtonAction::SHORT_PRESS
+        ? UIStrings::ButtonActionStrings::SHORT_PRESS : UIStrings::ButtonActionStrings::LONG_PRESS;
+    log_t("ThemeMenu action %lu start %s", action_id, action_name);
+#endif
+
     // Execute through panel methods
     if (pendingActionType_ == ButtonAction::SHORT_PRESS) {
         currentPanel_->HandleShortPress();
@@ -143,6 +151,9 @@ void ActionHandler::ExecutePendingActions() {
 
     // Clear pending action after execution
     ClearPendingAction();
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    log_t("ThemeMenu action %lu end %s", action_id, action_name);
+#endif
 }
 
 void ActionHandler::UpdateButtonState() {

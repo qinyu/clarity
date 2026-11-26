@@ -2,6 +2,7 @@
 #include "managers/error_manager.h"
 #include "definitions/constants.h"
 #include "definitions/styles.h"
+#include "utilities/logging.h"
 #include <Arduino.h>
 #include <cmath>
 #include <cstring>
@@ -262,6 +263,10 @@ void ConfigComponent::UpdateThemeColors()
     
     // Update menu display to refresh all menu item colors
     UpdateMenuDisplay();
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    static unsigned long palette_sequence = 0;
+    log_t("ThemeMenu menu palette %lu %s", ++palette_sequence, isNightTheme ? Themes::NIGHT : Themes::DAY);
+#endif
 }
 
 /**

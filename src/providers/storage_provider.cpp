@@ -344,6 +344,16 @@ std::optional<Config::ConfigValue> StorageProvider::QueryConfigValue(const std::
 }
 
 bool StorageProvider::UpdateConfigValue(const std::string& fullKey, const Config::ConfigValue& value) {
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    static unsigned long write_sequence = 0;
+    const bool should_trace_write = fullKey == ConfigConstants::Keys::STYLE_MANAGER_THEME
+        || fullKey == ConfigConstants::Keys::STYLE_MANAGER_BRIGHTNESS;
+    const unsigned long write_id = should_trace_write ? ++write_sequence : 0;
+    if (should_trace_write) {
+        log_t("ThemeMenu write %lu attempt %s=%s", write_id, fullKey.c_str(), ToString(value).c_str());
+    }
+#endif
+
     // Parse dot-separated key into section and item components
     auto [sectionName, itemKey] = ParseConfigKey(fullKey);
 
@@ -383,6 +393,11 @@ bool StorageProvider::UpdateConfigValue(const std::string& fullKey, const Config
     preferences_.end();
 
     if (success) {
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+        if (should_trace_write) {
+            log_t("ThemeMenu write %lu success %s=%s", write_id, fullKey.c_str(), ToString(value).c_str());
+        }
+#endif
         log_i("Updated config %s = %s", fullKey.c_str(),
               ToString(value).c_str());
 

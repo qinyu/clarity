@@ -1,0 +1,86 @@
+name: Theme menu observation probe
+version: 1
+steps:
+  - wait-serial: '[T] OemOilPanel loaded successfully'
+  - &settle
+    delay: 600ms
+
+  # Open settings, then Display and Theme. The baseline focus is Day.
+  - &button_down
+    set-control: { part-id: btn1, name: pressed, value: 1 }
+  - &long_press
+    delay: 2000ms
+  - &button_up
+    set-control: { part-id: btn1, name: pressed, value: 0 }
+  - *settle
+  - *button_down
+  - &short_press
+    delay: 800ms
+  - *button_up
+  - *settle
+  - *button_down
+  - *long_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *long_press
+  - *button_up
+  - *settle
+
+  # Long-press confirms Day and returns to Display.
+  - *button_down
+  - *long_press
+  - *button_up
+  - *settle
+  - take-screenshot: { part-id: lcd1, save-to: probe-display.png }
+
+  # Display starts on Theme. Move through Brightness to Back.
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *long_press
+  - *button_up
+  - *settle
+
+  # Configuration starts on Button, with six short presses to Exit.
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *short_press
+  - *button_up
+  - *settle
+  - *button_down
+  - *long_press
+  - *button_up
+  - *settle
+
+  - set-control: { part-id: trigger_btn4, name: pressed, value: 1 }
+  - *settle
+  - take-screenshot: { part-id: lcd1, save-to: probe-lights-on.png }
+  - set-control: { part-id: trigger_btn4, name: pressed, value: 0 }
+  - *settle
+  - take-screenshot: { part-id: lcd1, save-to: probe-lights-off.png }
