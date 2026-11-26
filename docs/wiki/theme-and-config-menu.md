@@ -1,6 +1,6 @@
 ---
-baseline: f6627ff
-verified_at: "2025-11-23"
+baseline: "3336c93"
+verified_at: "2026-11-26"
 topic: theme-and-config-menu
 ---
 
@@ -15,9 +15,9 @@ topic: theme-and-config-menu
 | 主题令牌与 LVGL 样式 | `src/managers/style_manager.cpp`、`include/definitions/styles.h` |
 | 车灯自动日夜切换 | `include/definitions/interrupts.h`（`TriggerType::STYLE`） |
 | 从表盘进配置 | `src/panels/oem_oil_panel.cpp`（`HandleLongPress`）、`src/panels/lock_panel.cpp` |
-| 自动化场景（含主题子菜单） | `test/wokwi/scenario_automated.yaml` |
+| 主题菜单与车灯验收 | [主题菜单场景入口](../../test/wokwi/theme_menu_focus/run.sh) |
 
-## 当前实现（已核实 @ f6627ff）
+## 当前实现（已核实 @ 3336c93）
 
 ### 1. 配置菜单不是写死的「Theme Settings」
 
@@ -44,12 +44,14 @@ ConfigPanel 主菜单：
 
 改 Theme：
   节内项 action SHOW_OPTIONS → ShowOptionsMenu（key style_manager.theme）
+  按配置值标记 Day 或 Night，并将匹配索引同时交给面板和组件
   选项 Day/Night → SET_CONFIG_VALUE → ConfigurationManager::UpdateConfig
   → 若 key 为 style_manager.theme → configComponent_.UpdateThemeColors()
-  → StyleManager 通过节回调 RefreshConfig → LoadConfiguration → SetTheme
 ```
 
 NVS 键：`style_manager.theme`（`ConfigConstants::Keys::STYLE_MANAGER_THEME`）。Schema 在 `StyleManager::RegisterConfigSchema`（`src/managers/style_manager.cpp`）。
+
+`ConfigPanel` 经 `IConfigurationManager::GetConfigSection()` 读取偏好，在生成枚举选项时记录第一个匹配项。该索引同时决定 `SetCurrentIndex()` 的渲染焦点及长按确认项。缺省 Day 同时获得高亮和 `>`。遇到 `Legacy` 等旧值时，Day 获得初始焦点，两个选项的 `>` 都为空，原值保留到显式保存。Brightness 继续从 0 高亮，并标记实际保存的亮度。
 
 ### 3. 运行时主题：车灯触发（不进菜单）
 
@@ -63,12 +65,12 @@ NVS 键：`style_manager.theme`（`ConfigConstants::Keys::STYLE_MANAGER_THEME`�
 
 | 机制 | 行为 |
 | --- | --- |
-| `GetCurrentTheme()` | 有 `ConfigurationManager` 时 **读本机偏好** `style_manager.theme`，不是仅看 LVGL 已刷色 |
-| `SetTheme(theme)` | 改 LVGL 样式并刷新当前屏，**注释写明不更新偏好里的 theme 成员为唯一真源** |
+| `GetCurrentTheme()` | 有 `ConfigurationManager` 时读取本机偏好 `style_manager.theme` |
+| `SetTheme(theme)` | 应用共享 LVGL 样式并刷新当前屏 |
 | 车灯 `SetTheme` | 即时改外观；偏好仍可能是用户曾在菜单选的 Day/Night |
 | `OemOilPanel::update` | 用 `GetCurrentTheme()` 与 `lastTheme_` 比较决定是否 `ApplyThemeToScreen` |
 
-做「主题菜单焦点」或统一「当前主题」展示时，需明确是跟 **偏好**、跟 **车灯瞬时覆盖**，还是两者合并策略（现状：**未在代码中合并**）。
+车灯触发时即时切换仪表配色。Theme 菜单从已保存偏好定位，高亮浏览保留原有标记。已保存 Day 时开灯，仪表进入 Night，Theme 仍高亮 `> Day`。已保存 Night 时关灯，仪表回到 Day，Theme 仍高亮 `> Night`。
 
 ### 5. 面板如何吃到主题
 
@@ -85,6 +87,7 @@ pio run -e test-wokwi
 ```
 
 场景中与主题相关步骤见 `scenario_automated.yaml`（Lights 切换、Config 内选 Night 等）。
+主题焦点的专用入口接受 `--case` 和浏览器采集。A5、A6 分别核对灯光边沿、仪表颜色、打开 Theme 的高亮，以及末帧后至少 500 ms 内的写入和配色记录。 [主题菜单检查入口](../../test/wokwi/theme_menu_focus/run.sh)
 
 ## 关键符号速查
 
