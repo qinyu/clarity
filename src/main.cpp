@@ -17,6 +17,26 @@
 #include "definitions/types.h"
 #include "managers/configuration_manager.h"
 
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+#include <esp_system.h>
+
+namespace {
+constexpr int THEME_MENU_RESTART_PIN = 21;
+
+void PollThemeMenuRestart()
+{
+    static bool pressed = false;
+    if (digitalRead(THEME_MENU_RESTART_PIN) == LOW) {
+        pressed = true;
+    } else if (pressed) {
+        log_t("ThemeMenu restart requested");
+        Serial.flush();
+        esp_restart();
+    }
+}
+}
+#endif
+
 // Self-registration at program startup
 static bool system_config_registered = []() {
     ConfigurationManager::AddSchema(SystemConfig::RegisterConfigSchema);
@@ -201,6 +221,9 @@ bool initializeServices()
  */
 void setup()
 {
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    pinMode(THEME_MENU_RESTART_PIN, INPUT_PULLUP);
+#endif
     OilTempAcceptanceBegin();
     log_i("Starting Clarity application...");
 
@@ -249,6 +272,9 @@ void setup()
  */
 void loop()
 {
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    PollThemeMenuRestart();
+#endif
     OilTempAcceptancePoll();
     // Always process - ActionHandler runs always, TriggerHandler only on IDLE
     interruptManager->Process();

@@ -156,6 +156,10 @@ void StyleManager::SetTheme(const char *theme)
         // Force LVGL to refresh the display
         lv_obj_invalidate(current_screen);
     }
+#if defined(WOKWI_EMULATOR) && defined(TEST_LOGS)
+    static unsigned long palette_sequence = 0;
+    log_t("ThemeMenu shared palette %lu %s", ++palette_sequence, theme);
+#endif
 }
 
 /**
