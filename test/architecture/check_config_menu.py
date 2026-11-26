@@ -17,6 +17,7 @@ PROBE_SOURCES = (
     "src/providers/storage_provider.cpp",
     "src/components/config_component.cpp",
     "src/managers/style_manager.cpp",
+    "src/main.cpp",
 )
 PROBE_MACROS = {"WOKWI_EMULATOR", "TEST_LOGS"}
 PROFILES = ("test-wokwi", "release")
@@ -25,6 +26,7 @@ PROBE_MARKERS = (
     b"ThemeMenu write ",
     b"ThemeMenu menu palette ",
     b"ThemeMenu shared palette ",
+    b"ThemeMenu restart requested",
 )
 CPP_NOISE = re.compile(
     r'(?P<raw>(?:u8|u|U|L)?R"(?P<delimiter>[^\s()\\]{0,16})\(.*?\)(?P=delimiter)")'
