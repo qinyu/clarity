@@ -52,6 +52,8 @@ class OemOilTemperatureComponent : public OemOilComponent
     OemOilTemperatureComponent(IStyleManager *styleManager);
     ~OemOilTemperatureComponent() = default;
 
+    void SetAvailable(bool available);
+
   protected:
     // ========== Protected Methods ==========
     const lv_image_dsc_t *get_icon() const override;
@@ -65,4 +67,7 @@ class OemOilTemperatureComponent : public OemOilComponent
     void setup_danger_zone(lv_scale_section_t *section) const override;
     int32_t get_icon_y_offset() const override;
     void get_label_angles(int32_t &lAngle, int32_t &hAngle) const override;
+
+  private:
+    lv_obj_t *unavailableLabel_ = nullptr;
 };

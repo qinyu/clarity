@@ -1,0 +1,13 @@
+name: Oil temperature GPIO39 raw 4096
+version: 1
+steps:
+  - wait-serial: "oil-temp acceptance rx=17 tx=1 display-input=on raw-probe=on"
+  - wait-serial: "OemOilPanel loaded successfully"
+  - delay: 2000ms
+  - write-serial: [83, 44, 82, 65, 87, 10]
+  - write-serial: [82, 65, 87, 10]
+  - wait-serial: "oil-temp input seq=2 scenario=RAW cmd=RAW"
+  - wait-serial: "oil-temp sample source=gpio39 sensor=OilTemperatureSensor raw=4096 value=invalid report=+1"
+  - wait-serial: "oil-temp sample source=cache value=invalid report=+0"
+  - wait-serial: "oil-temp raw probe clear"
+  - wait-serial: "ErrorPanel loaded successfully"

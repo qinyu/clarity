@@ -1,6 +1,8 @@
 #include "components/oem/oem_oil_temperature_component.h"
 #include "managers/error_manager.h"
+#include "managers/style_manager.h"
 #include "definitions/constants.h"
+#include "lvgl.h"
 #include <esp32-hal-log.h>
 
 // ========== Constructors and Destructor ==========
@@ -9,6 +11,49 @@ OemOilTemperatureComponent::OemOilTemperatureComponent(IStyleManager *styleManag
 {
     log_v("OemOilTemperatureComponent() constructor called");
     // Constructor delegates initialization to base OemOilComponent
+}
+
+void OemOilTemperatureComponent::SetAvailable(bool available)
+{
+    if (!scale_)
+    {
+        return;
+    }
+    lv_obj_t *needles[] = {needleLine_, needleMiddle_, needleBase_, needleHighlightLine_, needleHighlightMiddle_, needleHighlightBase_};
+    for (lv_obj_t *needle : needles)
+    {
+        if (!needle)
+        {
+            continue;
+        }
+        if (available)
+        {
+            lv_obj_clear_flag(needle, LV_OBJ_FLAG_HIDDEN);
+        }
+        else
+        {
+            lv_obj_add_flag(needle, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+    if (!available)
+    {
+        if (!unavailableLabel_)
+        {
+            unavailableLabel_ = lv_label_create(scale_);
+            lv_label_set_text(unavailableLabel_, "\u6cb9\u6e29\u4e0d\u53ef\u7528");
+            lv_obj_set_style_text_font(unavailableLabel_, &lv_font_simsun_16_cjk, MAIN_DEFAULT);
+            lv_obj_align(unavailableLabel_, LV_ALIGN_CENTER, 0, 20);
+        }
+        if (styleManager_)
+        {
+            lv_obj_set_style_text_color(unavailableLabel_, styleManager_->GetThemeColors().text, MAIN_DEFAULT);
+        }
+        lv_obj_clear_flag(unavailableLabel_, LV_OBJ_FLAG_HIDDEN);
+    }
+    else if (unavailableLabel_)
+    {
+        lv_obj_add_flag(unavailableLabel_, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 // ========== Protected Methods ==========

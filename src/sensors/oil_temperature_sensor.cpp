@@ -1,4 +1,5 @@
 #include "sensors/oil_temperature_sensor.h"
+#include "sensors/oil_temperature_acceptance.h"
 #include "managers/error_manager.h"
 #include "definitions/configs.h"
 #include "utilities/logging.h"
@@ -136,36 +137,49 @@ void OilTemperatureSensor::SetTargetUnit(const std::string &unit)
  */
 Reading OilTemperatureSensor::GetReading()
 {
-    // Check if enough time has passed for update
-    if (ShouldUpdate(lastUpdateTime_, updateIntervalMs_))
+    const OilTempOverride overrideReading = OilTempDisplayOverride();
+    if (overrideReading.present)
     {
-        // Read raw value from ADC
-        int32_t rawValue = ReadRawValue();
-
-        // Validate ADC reading
-        if (!IsValidAdcReading(rawValue))
+        AcceptOilTemperatureSample(sampleState_, !overrideReading.invalid, overrideReading.celsius);
+    }
+    else
+    {
+        const bool forceSample = OilTempAcceptanceForceSample();
+        if (forceSample || ShouldUpdate(lastUpdateTime_, updateIntervalMs_))
         {
-            // Use char buffer to avoid std::to_string allocation in error path
-            static char errorBuffer[64];
-            snprintf(errorBuffer, sizeof(errorBuffer), "Raw reading out of range: %d", rawValue);
-            ErrorManager::Instance().ReportError(ErrorLevel::ERROR, "OilTemperatureSensor", errorBuffer);
-            return std::monostate{}; // Return invalid reading
+            if (forceSample)
+            {
+                lastUpdateTime_ = millis();
+            }
+            const int reportsBefore = OilTempAcceptanceErrorCount();
+            const int32_t rawValue = ReadRawValue();
+            const bool adcValid = IsValidAdcReading(rawValue);
+            if (!adcValid)
+            {
+                static char errorBuffer[64];
+                snprintf(errorBuffer, sizeof(errorBuffer), "Raw reading out of range: %d", rawValue);
+                ErrorManager::Instance().ReportError(ErrorLevel::ERROR, "OilTemperatureSensor", errorBuffer);
+            }
+            const int reportDelta = OilTempAcceptanceErrorCount() - reportsBefore;
+            AcceptOilTemperatureSample(sampleState_, adcValid, adcValid ? ConvertReading(rawValue) : 0);
+            OilTempAcceptanceNoteSample(true, !adcValid, reportDelta, rawValue);
         }
-
-        // Convert to target unit
-        int32_t newValue = ConvertReading(rawValue);
-
-        // Update change tracking
-        DetectChange(newValue, previousReading_);
-
-        // Only update current reading if value actually changed
-        if (newValue != currentReading_)
+        else
         {
-            currentReading_ = newValue;
-            log_t("Temperature reading: %d %s", currentReading_, targetUnit_.c_str());
+            OilTempAcceptanceNoteSample(false, !HoldOilTemperatureReading(sampleState_).valid, 0);
         }
     }
 
+    const OilTemperatureHeld held = HoldOilTemperatureReading(sampleState_);
+    if (!held.valid)
+    {
+        return std::monostate{};
+    }
+    if (held.value != currentReading_)
+    {
+        currentReading_ = held.value;
+        log_t("Temperature reading: %d %s", currentReading_, targetUnit_.c_str());
+    }
     return currentReading_;
 }
 
@@ -241,9 +255,8 @@ int32_t OilTemperatureSensor::ConvertReading(int32_t rawValue)
  */
 bool OilTemperatureSensor::HasStateChanged()
 {
-    // Use cached reading to avoid double ADC reads - GetReading() updates currentReading_
-    int32_t cachedReading = static_cast<int32_t>(std::get<int32_t>(GetReading()));
-    return DetectChange(cachedReading, previousChangeReading_);
+    GetReading();
+    return OilTemperatureStateChanged(sampleState_);
 }
 
 /**

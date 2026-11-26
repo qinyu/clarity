@@ -1,0 +1,23 @@
+name: Oil temperature recover 110 alarm color
+version: 1
+steps:
+  - wait-serial: "oil-temp acceptance rx=17 tx=1 display-input=on raw-probe=on"
+  - wait-serial: "OemOilPanel loaded successfully"
+  - delay: 1200ms
+  - write-serial: [83, 44, 72, 79, 84, 10]
+  - write-serial: [84, 44, 56, 48, 10]
+  - wait-serial: "scenario=HOT input-seq=2 unavailable=0 value=80"
+  - write-serial: [73, 78, 86, 10]
+  - wait-serial: "invalid-update=0001 scenario=HOT"
+  - write-serial: [84, 44, 49, 49, 48, 10]
+  - wait-serial: "scenario=HOT input-seq=4 unavailable=0 value=110 position=1 style=1"
+  - delay: 300ms
+  - take-screenshot:
+      part-id: lcd1
+      save-to: oil-temp-hot-110.png
+  - write-serial: [84, 44, 49, 49, 48, 10]
+  - wait-serial: "scenario=HOT input-seq=5 unavailable=0 value=110 position=0 style=0"
+  - delay: 300ms
+  - take-screenshot:
+      part-id: lcd1
+      save-to: oil-temp-hot-110-hold.png
