@@ -567,10 +567,14 @@ void ConfigPanel::ShowOptionsMenu(const std::string& fullKey, const Config::Conf
 
     // Parse constraints to get available options
     auto options = ParseOptions(item.metadata.constraints);
+    std::size_t initial_index = 0;
 
     // Delegate to appropriate specialized method based on data type and available options
     if (!options.empty()) {
-        ShowEnumOptionsMenu(keyStr, item, options);
+        const auto saved_index = ShowEnumOptionsMenu(keyStr, item, options);
+        if (keyStr == UIStrings::ConfigKeys::STYLE_MANAGER_THEME) {
+            initial_index = saved_index.value_or(0);
+        }
     } else if (configurationManager_->IsNumeric(item.value)) {
         ShowNumericOptionsMenu(keyStr, item);
     } else {
@@ -579,15 +583,14 @@ void ConfigPanel::ShowOptionsMenu(const std::string& fullKey, const Config::Conf
 
     // Add back option
     menuItems_.push_back({UIStrings::MenuLabels::BACK, UIStrings::ActionTypes::BACK, ""});
+    currentMenuIndex_ = initial_index;
 
     // Update component
     if (componentInitialized_) {
         configComponent_.SetTitle(item.displayName);
         configComponent_.SetMenuItems(menuItems_);
-        configComponent_.SetCurrentIndex(0);
+        configComponent_.SetCurrentIndex(currentMenuIndex_);
     }
-
-    currentMenuIndex_ = 0;
 }
 
 /**
@@ -667,19 +670,26 @@ std::pair<std::string, std::string> ConfigPanel::ParseConfigKey(const std::strin
  * @param fullKey Full configuration key for action handling
  * @param item Configuration item being configured
  * @param options Vector of valid option strings
+ * @return Index of the first option matching the current configuration, if any
  *
  * Creates menu items for each option with selection indicator.
  * Current value is marked with arrow prefix for visual feedback.
  */
-void ConfigPanel::ShowEnumOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item, const std::vector<std::string>& options)
+std::optional<std::size_t> ConfigPanel::ShowEnumOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item,
+                                                           const std::vector<std::string>& options)
 {
     std::string currentValue = configurationManager_->ToString(item.value);
+    std::optional<std::size_t> matched_index;
 
     for (const auto& option : options) {
         bool isSelected = (option == currentValue);
+        if (isSelected && !matched_index) {
+            matched_index = menuItems_.size();
+        }
         ConfigComponent::MenuItem menuItem = CreateMenuItemWithSelection(option, fullKey, option, isSelected);
         menuItems_.push_back(menuItem);
     }
+    return matched_index;
 }
 
 /**

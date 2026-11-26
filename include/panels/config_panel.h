@@ -11,7 +11,9 @@
 #include "definitions/configs.h"
 #include "definitions/types.h"
 
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -86,7 +88,8 @@ class ConfigPanel : public IPanel
     void ShowBooleanToggle(const std::string& fullKey, const Config::ConfigItem& item);
 
     // Extracted ShowOptionsMenu helpers
-    void ShowEnumOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item, const std::vector<std::string>& options);
+    std::optional<std::size_t> ShowEnumOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item,
+                                                   const std::vector<std::string>& options);
     void ShowNumericOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item);
     void ShowStringOptionsMenu(const std::string& fullKey, const Config::ConfigItem& item);
     ConfigComponent::MenuItem CreateMenuItemWithSelection(const std::string& label, const std::string& fullKey, const std::string& value, bool isSelected) const;

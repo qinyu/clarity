@@ -124,16 +124,19 @@ def check_probe(destination):
     if lights is None:
         raise ValueError("The serial trace is missing ordered Night/Day light transitions")
     for name in PROBE_FRAMES:
-        frame = destination / name
-        data = frame.read_bytes()
-        if (
-            len(data) < 45
-            or not data.startswith(b"\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR")
-            or int.from_bytes(data[16:20], "big") == 0
-            or int.from_bytes(data[20:24], "big") == 0
-            or not data.endswith(b"\x00\x00\x00\x00IEND\xaeB\x60\x82")
-        ):
-            raise ValueError(f"Missing or invalid LCD capture: {frame}")
+        check_png(destination / name)
+
+
+def check_png(frame):
+    data = frame.read_bytes()
+    if (
+        len(data) < 45
+        or not data.startswith(b"\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR")
+        or int.from_bytes(data[16:20], "big") == 0
+        or int.from_bytes(data[20:24], "big") == 0
+        or not data.endswith(b"\x00\x00\x00\x00IEND\xaeB\x60\x82")
+    ):
+        raise ValueError(f"Missing or invalid LCD capture: {frame}")
 
 
 def main():
@@ -146,13 +149,11 @@ def main():
     parser.add_argument("--build-evidence", type=Path, help="paired probe-isolation evidence for --case all")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--prepare-only", action="store_true", help="stage a project for a browser simulator")
-    mode.add_argument("--check-capture", action="store_true", help="check serial.log and probe frames in --out")
+    mode.add_argument("--check-capture", action="store_true", help="check simulated serial and LCD captures in --out")
     args = parser.parse_args()
     out = args.out.resolve()
     if args.case != "probe":
-        if args.prepare_only or args.check_capture:
-            parser.error("The standalone capture modes currently apply to --case probe")
-        if args.build_dir is None:
+        if args.build_dir is None and (args.case == "all" or not args.check_capture):
             parser.error("--build-dir is required for acceptance cases")
         if args.case in ("A4", "all") and args.reference_build_dir is None:
             parser.error("A4 requires --reference-build-dir")
@@ -174,7 +175,7 @@ def main():
         for case in cases:
             if not (SUITE / f"{case}_check.py").is_file():
                 raise ValueError(f"Acceptance case {case} has not been implemented")
-        # Each case owns its fixtures and assertions. Adding a case needs no shared runner edit.
+        # Each case owns its fixtures and assertions and raises on failure.
         for case in cases:
             importlib.import_module(f"{case}_check").run(args)
         return
