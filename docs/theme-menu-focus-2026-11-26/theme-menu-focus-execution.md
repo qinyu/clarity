@@ -1,11 +1,11 @@
 # 主题菜单焦点 · Develop 执行记录
 
-获批工作基线 `e3ea788eefe9b18e992658b249819c3ad992f93f`，原特性分支 `codex/theme-menu-focus`。PR 候选在独立工作树的 `codex/theme-menu-focus-pr` 上同步了远端 `main`。同版 A1–A3、A5–A8 共 7 项已在 Wokwi 通过，A4 仍缺同实例重启证据。 [Design 确认回执](theme-menu-focus-design-approval.md) · [任务清单](theme-menu-focus-tasks.md)
+获批工作基线 `e3ea788eefe9b18e992658b249819c3ad992f93f`，原特性分支 `codex/theme-menu-focus`。PR 候选在独立工作树的 `codex/theme-menu-focus-pr` 上同步了远端 `main`。最终同版固件的 A1–A8 已在 Wokwi 通过，双向 A4 均恢复了已保存主题。 [Design 确认回执](theme-menu-focus-design-approval.md) · [任务清单](theme-menu-focus-tasks.md)
 
 - [x] **T1 已完成。** 本地提交 `8632b074fa6bcdafac715f529965040d9310361e`。网页端完成 15 次按键派发、Day 写入、菜单刷新、GPIO33 开关与 Day／Night 配色。三张 LCD PNG 可判读，采集回执校验退出 0。
 - [x] **T2 已完成。** 本地提交 `ae46078a70583a40cdbca3a8817cd3d24f4ebf2a`。A1 基线保存 Night 后重开，Night 带 `>`，Day 居中。直接长按写回 Day，检查按预期退出 1。候选 A1、A2、A3、A7 比对实际加载镜像与串口、逐帧判读通过。写入断言按每次长按的开始和结束限定归属，独立复审确认 A1 重开误写会失败。
 - [x] **T3 已完成。** PR 分支本地提交 `3336c93`。A5、A6 的真实 GPIO33 正向事件、LCD 帧和 Theme 操作窗口均核对通过。A5 末帧后继续观察 633 ms，A6 继续观察 600 ms，两个窗口内主题写入、菜单配色刷新、共享配色应用均为零。
-- [ ] **T4 同实例重启受阻。** 双向实跑均成功写入并立即刷新 Display 的标题与提示配色，确认窗口内的共享配色事件与 T1 一致。按下再释放 EN 无第二次 ROM 启动，工具栏按钮会启动网页示例固件。本机 `pio device list` 未检测到 ESP32 串口台架。已请求复位路径决策。
+- [x] **T4 已完成。** 本地提交 `f4f0505`。用户授权用双重宏守卫的 `esp_restart()` 替代模拟器 EN。两个方向均成功保存，Display 即时配色及共享样式事件与 T1 相符。同实例重启后首次打开 Theme 分别高亮 `> Night` 和 `> Day`，恢复期间没有配置写入。
 - [x] **T5 已完成。** PR 分支本地提交 `ed76e0b`。两次进入 Theme 均高亮 Day，两个主题均无 `>`，Display 两次读出 `Legacy`。第 12 次 GPIO32 动作才成功写入 Night，Display 与再次打开 Theme 均显示 Night，Theme 聚焦 `> Night`。复核命令通过，人工判读六张 LCD 帧。采集位于 `.pio/theme-menu-pr-paired/browser-captures/A8/`。
 
 ## T1 已执行
@@ -42,11 +42,18 @@
 - 按本轮用户授权移除仓库 `[env:release]` 的 `ARDUINO_USB_MODE=1` 和 `ARDUINO_USB_CDC_ON_BOOT=1`。本地提交 `84006ad` 的精确暂存快照完成 `test-wokwi` 和 `release` 两档固件构建。构建沿用 AGENTS.md 的外置 LVGL 9.2.2 预检。四个探针翻译单元的实际宏和两个 BIN 的四类探针标记均符合预期。双档证据在 `.pio/probe-release-staged.LPRncUBj/evidence/`，构建日志为同目录上级的 `build.log`。
 - `--case all` 已启用探针隔离门禁，需要 `--build-evidence`。构建助手 `python3 -B test/architecture/build_probe_profiles.py <新目录>` 生成两个 BIN、两份编译数据库及一份配对摘要。门禁核对待验 BIN 和四项摘要后才发现验收用例。7 条隔离用例通过。独立复审确认分别换入旧 release BIN 或旧 release 编译数据库时均在发现用例前退出 1。A1–A8 的实跑与画面判读仍按各用例执行。
 
-## 当前 A4 诊断
+## A4 早期 EN 排查
 
-两种方向和 T1 对照的运行目录位于 `.pio/theme-menu-pr-paired/browser-captures/`，目录名以 `A4-` 开头。候选 Day→Night 的 `pre-reset.log` 及 Night→Day 的 `partial.log` 显示真实写入、菜单即时刷新，并分别与同方向基线核对确认窗口内的共享配色事件。两个候选方向均只记录首次 ROM 启动。用 10 kΩ 上拉的 EN 诊断也只有一次启动，见 `.pio/theme-menu-next/a4-en-pullup/`。工具栏重启前已记录 Night 保存成功，重启后串口输出网页示例的 `Please view the instructions in the source code!`，这次启动不计入候选验收。交接仍在 Develop。
+两种方向和 T1 对照的运行目录位于 `.pio/theme-menu-pr-paired/browser-captures/`，目录名以 `A4-` 开头。候选 Day→Night 的 `pre-reset.log` 及 Night→Day 的 `partial.log` 显示真实写入、菜单即时刷新，并分别与同方向基线核对确认窗口内的共享配色事件。两个候选方向均只记录首次 ROM 启动。用 10 kΩ 上拉的 EN 诊断也只有一次启动，见 `.pio/theme-menu-next/a4-en-pullup/`。工具栏重启前已记录 Night 保存成功，重启后串口输出网页示例的 `Please view the instructions in the source code!`，这次启动作为排查记录保留。
 
-PR 工作树的汇总检查通过 A1–A3 及双档探针隔离后，在 A4 缺重启采集回执处退出 1。见 `.pio/theme-menu-pr-paired/all-browser-check.log`。单项复验仍可运行其余场景。
+旧版汇总检查在 A4 缺重启采集回执处退出 1，见 `.pio/theme-menu-pr-paired/all-browser-check.log`。
+
+## 最终同版复验
+
+- 候选代码提交 `f4f050500d5fff78aa772e89fd64b7a0aac4fe69`。A4 测试按钮接至 GPIO21。复位入口、初始化和轮询均由 `WOKWI_EMULATOR && TEST_LOGS` 守卫，扩展后的配对门禁覆盖 5 个翻译单元及其探针标记。ELF 符号表也核对了 `PollThemeMenuRestart`。
+- 两个方向均从同一份闪存实际保存、软件复位和重新打开 Theme。两份串口都记录 `SW_CPU_RESET`，Wokwi 随后在应用输出前出现一次 `TG1WDT_SYS_RESET` ROM 重试。检查同时验证快闪启动模式、唯一明确的复位请求、重试前无应用输出、随后仪表就绪，及首次进入 Theme 期间零写入。T1 对照复用原采集，重新核对了固件、场景步骤和采集摘要。
+- `--case all --check-capture` 使用同一份 `test-wokwi` 候选 BIN，退出 0。A1–A8 所需 LCD 画面逐帧核对。GPIO32 保存与高亮对齐，GPIO33 暂时换色保持保存值，亮度从首项开始，Legacy 仅在显式保存后更新。C++17 冒烟及油温测试、7 条架构单测和两档产物检查均通过。
+- `test-wokwi` 应用 BIN SHA-256 `bb7a0734f8e4a90aac30911c9aa3137d1d6fe4efbef6878e52382cf884c6e97e`。`release` 应用 BIN SHA-256 `3f4f66058e53e961d44a1591c4ada77de3f13b4b214f58c1a834e43799673ebf`。实际采集、双档构建指纹和全量结果在 `.pio/theme-menu-restart-final/`。
 
 在 PR 工作树根目录，使用可运行 Espressif NVS 工具的 Python 环境执行下列命令。`pair` 指向同次双档构建证据，`ref_build` 指向 T1 的 `test-wokwi` 目录，`nvs_gen` 指向 Espressif 生成脚本。浏览器模式用 `--prepare-only` 生成场景目录，用 `--check-capture` 回读同一批目录。LCD 的高亮、标记和配色由人工对照验收例判读。
 

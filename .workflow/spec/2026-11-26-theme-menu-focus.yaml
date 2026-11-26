@@ -1,5 +1,5 @@
 name: theme-menu-focus
-stage: Develop
+stage: Deliver
 refs:
   source:
     type: 本轮用户原话
@@ -53,12 +53,12 @@ refs:
     baseline: e3ea788eefe9b18e992658b249819c3ad992f93f
     execution:
       path: docs/theme-menu-focus-2026-11-26/theme-menu-focus-execution.md
-      sha256: 334aafa680412fe266dd1898f049c9ce75323eeea18b6ce3c7e111b4fa6208d6
+      sha256: fd8614831291add7fedc7d373c30a60ce2e69c3d2eefd1b77e37cd34b52a050f
     tasks:
       T1: 已通过并本地提交
       T2: A1、A2、A3、A7 通过并本地提交
       T3: A5、A6 通过并本地提交
-      T4: 同实例复位未成功，等待已请求的模拟复位决策
+      T4: A4 双向同实例软件复位恢复通过并本地提交
       T5: A8 通过并本地提交
     t1_commit: 8632b074fa6bcdafac715f529965040d9310361e
     t1_capture:
@@ -71,3 +71,11 @@ refs:
     delivery_target: main
     t3_commit: 3336c93
     t5_commit: ed76e0b
+    t4_commit: f4f050500d5fff78aa772e89fd64b7a0aac4fe69
+  deliver:
+    source_branch: codex/theme-menu-focus-pr
+    target_branch: main
+    verified_code_commit: f4f050500d5fff78aa772e89fd64b7a0aac4fe69
+    test_wokwi_bin_sha256: bb7a0734f8e4a90aac30911c9aa3137d1d6fe4efbef6878e52382cf884c6e97e
+    release_bin_sha256: 3f4f66058e53e961d44a1591c4ada77de3f13b4b214f58c1a834e43799673ebf
+    acceptance: A1–A8 同版实跑和 LCD 判读通过
