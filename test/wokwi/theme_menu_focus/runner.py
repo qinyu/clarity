@@ -143,6 +143,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reference-build-dir", type=Path)
     parser.add_argument("--nvs-gen", type=Path)
+    parser.add_argument("--build-evidence", type=Path, help="paired probe-isolation evidence for --case all")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--prepare-only", action="store_true", help="stage a project for a browser simulator")
     mode.add_argument("--check-capture", action="store_true", help="check serial.log and probe frames in --out")
@@ -157,6 +158,18 @@ def main():
             parser.error("A4 requires --reference-build-dir")
         if args.case in ("A8", "all") and args.nvs_gen is None:
             parser.error("A8 requires --nvs-gen")
+        if args.case == "all":
+            if args.build_evidence is None:
+                parser.error("Full acceptance requires --build-evidence")
+            evidence = args.build_evidence.resolve()
+            matched = evidence / "build" / "test-wokwi" / "firmware.bin"
+            if digest(args.build_dir / "firmware.bin") != digest(matched):
+                raise ValueError("Full acceptance firmware does not match the probe-isolation evidence")
+            subprocess.run(
+                [sys.executable, str(SUITE.parents[1] / "architecture" / "check_config_menu.py"),
+                 "--build-evidence", str(evidence)],
+                check=True,
+            )
         cases = ACCEPTANCE_CASES if args.case == "all" else (args.case,)
         for case in cases:
             if not (SUITE / f"{case}_check.py").is_file():

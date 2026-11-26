@@ -2,6 +2,7 @@
 """Check the Clarity configuration menu's direct dependencies and probe isolation."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
@@ -18,6 +19,7 @@ PROBE_SOURCES = (
     "src/managers/style_manager.cpp",
 )
 PROBE_MACROS = {"WOKWI_EMULATOR", "TEST_LOGS"}
+PROFILES = ("test-wokwi", "release")
 PROBE_MARKERS = (
     b"ThemeMenu action ",
     b"ThemeMenu write ",
@@ -112,9 +114,19 @@ def defined_macros(args):
     return active
 
 
+def build_fingerprints(evidence):
+    files = [f"{profile}-compile_commands.json" for profile in PROFILES]
+    files.extend(f"build/{profile}/firmware.bin" for profile in PROFILES)
+    return {file: hashlib.sha256((evidence / file).read_bytes()).hexdigest() for file in files}
+
+
 def build_errors(root, evidence):
+    receipt = evidence / "probe-build-sha256.json"
+    if json.loads(receipt.read_text()) != build_fingerprints(evidence):
+        yield f"{receipt}: [probe-isolation] files do not match the paired build fingerprints."
+        return
     expected_files = {(root / name).resolve(): name for name in PROBE_SOURCES}
-    for profile in ("test-wokwi", "release"):
+    for profile in PROFILES:
         database = evidence / f"{profile}-compile_commands.json"
         matching_files = set()
         for item in json.loads(database.read_text()):

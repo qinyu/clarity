@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-from check_config_menu import PANEL, PROBE_MARKERS, PROBE_SOURCES, VIEW
+from check_config_menu import PANEL, PROBE_MARKERS, PROBE_SOURCES, VIEW, build_fingerprints
 
 CHECKER = Path(__file__).with_name("check_config_menu.py")
 
@@ -89,6 +89,7 @@ STYLE_MANAGER_THEME
             firmware.parent.mkdir(parents=True)
             markers = PROBE_MARKERS if profile == "test-wokwi" or release_probe else ()
             firmware.write_bytes(b"\xe9" + b"\0".join(markers))
+        self.write("evidence/probe-build-sha256.json", json.dumps(build_fingerprints(evidence)))
         return evidence
 
     def test_both_builds_enforce_expanded_flags_and_linked_markers(self):
@@ -103,6 +104,13 @@ STYLE_MANAGER_THEME
         run = self.check("--build-evidence", str(valid))
         self.assertEqual(run.returncode, 0, run.stderr)
         self.assertIn("probe isolation passed", run.stdout)
+
+    def test_replaced_release_binary_breaks_the_paired_evidence(self):
+        evidence = self.mock_builds()
+        (evidence / "build/release/firmware.bin").write_bytes(b"\xe9another release image")
+        run = self.check("--build-evidence", str(evidence))
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("do not match the paired build fingerprints", run.stderr)
 
 
 if __name__ == "__main__":
